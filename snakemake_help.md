@@ -1,4 +1,5 @@
-
+## Install Java
+sudo apt install default-jre
 
 ## Install FastQC
 1. Download FastQC:

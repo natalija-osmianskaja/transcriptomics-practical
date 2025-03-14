@@ -1,3 +1,4 @@
 /.snakemake/
+/FastQC/
 /resources/
 /results/

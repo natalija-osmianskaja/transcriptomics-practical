@@ -1,14 +1,17 @@
+# find input files that match a specified pattern
+# {sample} is a wildcard which represents a variable part of the filename
+RNA_SAMPLE_DATA = glob_wildcards("resources/RNA-seq-sample-data/{sample}.fastq.gz").sample
+
+rule all:
+    input:
+        expand("results/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
+        #"data_output_multiqc/multiqc_report.html",
+        #expand("data_output_bbduk_trimed/{sample}_bbduk.fastq", sample=RNA_SAMPLE_DATA)
 
 rule fastqc:
     input:
-        "data/raw/{sample}.fastq"
+        "resources/RNA-seq-sample-data/{sample}.fastq.gz"
     output:
-        "results/fastqc_reports/{sample}_fastqc.html",
-        "results/fastqc_reports/{sample}_fastqc.zip"
-    conda:
-        "envs/fastqc.yaml"
+        "results/{sample}_fastqc.html", 
     shell:
-        """
-        mkdir -p results/fastqc_reports
-        fastqc {input} --outdir results/fastqc_reports
-        """
+        "fastqc -o results {input}"
