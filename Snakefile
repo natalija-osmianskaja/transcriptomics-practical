@@ -4,14 +4,22 @@ RNA_SAMPLE_DATA = glob_wildcards("resources/RNA-seq-sample-data/{sample}.fastq.g
 
 rule all:
     input:
-        expand("results/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
-        #"data_output_multiqc/multiqc_report.html",
+        #expand("results/fastqc/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
+        "results/multiqc/multiqc_report.html"
         #expand("data_output_bbduk_trimed/{sample}_bbduk.fastq", sample=RNA_SAMPLE_DATA)
 
 rule fastqc:
     input:
         "resources/RNA-seq-sample-data/{sample}.fastq.gz"
     output:
-        "results/{sample}_fastqc.html", 
+        "results/fastqc/{sample}_fastqc.html", 
     shell:
-        "fastqc -o results {input}"
+        "fastqc -o results/fastqc {input}"
+
+rule multiqc:
+    input:
+        expand("results/fastqc/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
+    output:
+        "results/multiqc/multiqc_report.html", 
+    shell:
+        "multiqc results/fastqc -o results/multiqc"      

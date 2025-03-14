@@ -31,3 +31,6 @@ bash
 echo 'export PATH=$PATH:/path/to/FastQC' >> ~/.bashrc
 Replace /path/to/FastQC with the actual path to your FastQC directory.
 ~~~
+
+## Install MultiQC
+pip install multiqc
