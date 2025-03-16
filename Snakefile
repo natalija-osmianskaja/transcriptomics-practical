@@ -13,7 +13,9 @@ rule all:
         # for fastqc_trimmed
         #expand("results/fastqc_trimmed/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
         # for multiqc_trimmed
-        "results/multiqc_trimmed/multiqc_report.html" 
+        #"results/multiqc_trimmed/multiqc_report.html" 
+        # for star_genome_index
+        "results/genome_indices/Genome"
  
 rule fastqc:
     input:
@@ -25,7 +27,7 @@ rule fastqc:
 
 rule multiqc:
     input:
-        expand("results/fastqc/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
+        expand("results/fastqc/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA),
     output:
         "results/multiqc/multiqc_report.html" 
     shell:
@@ -49,8 +51,16 @@ rule fastqc_trimmed:
 
 rule multiqc_trimmed:
     input:
-        expand("results/fastqc_trimmed/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
+        expand("results/fastqc_trimmed/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA),
     output:
         "results/multiqc_trimmed/multiqc_report.html" 
     shell:
-        "multiqc results/fastqc_trimmed -o results/multiqc_trimmed"            
+        "multiqc results/fastqc_trimmed -o results/multiqc_trimmed"         
+
+rule star_genome_index:
+    input:
+        "resources/ref/chr19_20Mb.fa"
+    output:
+        "results/genome_indices/Genome",
+    shell:
+        "star/STAR --runThreadN 8 --runMode genomeGenerate --genomeDir results/genome_indices --genomeFastaFiles {input} --sjdbGTFfile resources/ref/chr19_20Mb.gtf"

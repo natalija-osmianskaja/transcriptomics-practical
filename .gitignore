@@ -1,5 +1,6 @@
 /.snakemake/
 /FastQC/
 /bbmap/
+/star/
 /resources/
 /results/

@@ -41,3 +41,15 @@ pip install multiqc
 ~~~bash~~~
  tar -xvzf BBMap_39.19.tar.gz 
 ~~~
+
+## Install STAR
+1. Download https://github.com/alexdobin/STAR/tree/master/bin/Linux_x86_64_static
+2. Run 
+~~~bash~~~
+sudo apt-get update
+sudo apt-get install g++
+sudo apt-get install make
+cd star
+chmod +x ./STAR
+./STAR # to check if it works
+~~~
