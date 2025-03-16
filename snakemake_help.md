@@ -3,7 +3,7 @@ sudo apt install default-jre
 
 ## Install FastQC
 1. Download FastQC:
-You can download FastQC directly from its official page at Babraham Bioinformatics: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ 
+https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ 
 
 2. Install FastQC:
 After downloading, unpack the archive and make the binary executable:
@@ -34,3 +34,10 @@ Replace /path/to/FastQC with the actual path to your FastQC directory.
 
 ## Install MultiQC
 pip install multiqc
+
+## Install BBTools
+1. Download BBTools from https://sourceforge.net/projects/bbmap/
+2. Extract:
+~~~bash~~~
+ tar -xvzf BBMap_39.19.tar.gz 
+~~~
