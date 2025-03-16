@@ -1,21 +1,28 @@
 # find input files that match a specified pattern
 # {sample} is a wildcard which represents a variable part of the filename
 RNA_SAMPLE_DATA = glob_wildcards("resources/RNA-seq-sample-data/{sample}.fastq.gz").sample
+TRIMMED_DATA = glob_wildcards("results/trimmed/{trimmed}_R1_001.fastq.gz").trimmed
+
+#print(TRIMMED_DATA)
+#print(expand("results/trimmed/{trimmed}_R1_001.fastq.gz", trimmed=TRIMMED_DATA))
+
 
 rule all:
     input:
-        # for fastqc
-        #expand("results/fastqc/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
-        # for multiqc
-        #"results/multiqc/multiqc_report.html"
-        # for bbduk
-        #expand("results/trimmed/{sample}.fastq.gz", sample=RNA_SAMPLE_DATA)
-        # for fastqc_trimmed
-        #expand("results/fastqc_trimmed/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA)
-        # for multiqc_trimmed
-        #"results/multiqc_trimmed/multiqc_report.html" 
-        # for star_genome_index
-        "results/genome_indices/Genome"
+        # fastqc
+        expand("results/fastqc/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA),
+        # multiqc
+        "results/multiqc/multiqc_report.html",
+        # bbduk
+        expand("results/trimmed/{sample}.fastq.gz", sample=RNA_SAMPLE_DATA),
+        # fastqc_trimmed
+        expand("results/fastqc_trimmed/{sample}_fastqc.html", sample=RNA_SAMPLE_DATA),
+        # multiqc_trimmed
+        "results/multiqc_trimmed/multiqc_report.html",
+        # star_genome_index
+        "results/genome_indices/Genome",
+        # star_mapping
+        expand("results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam", trimmed=TRIMMED_DATA)
  
 rule fastqc:
     input:
@@ -63,4 +70,32 @@ rule star_genome_index:
     output:
         "results/genome_indices/Genome",
     shell:
-        "star/STAR --runThreadN 8 --runMode genomeGenerate --genomeDir results/genome_indices --genomeFastaFiles {input} --sjdbGTFfile resources/ref/chr19_20Mb.gtf"
+        """
+        star/STAR \
+            --runThreadN 8 \
+            --runMode genomeGenerate \
+            --genomeDir results/genome_indices \
+            --genomeFastaFiles {input} \
+            --sjdbGTFfile resources/ref/chr19_20Mb.gtf \
+            --genomeSAindexNbases 11 \
+            --outFileNamePrefix star
+        """
+
+rule star_mapping:
+    input:
+        read1="results/trimmed/{trimmed}_R1_001.fastq.gz",
+        read2="results/trimmed/{trimmed}_R2_001.fastq.gz"
+    output:
+        "results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam"
+    # threads: 1
+    shell:
+        """
+        star/STAR \
+            --runThreadN 8 \
+            --genomeDir results/genome_indices \
+            --readFilesIn {input.read1} {input.read2} \
+            --readFilesCommand zcat \
+            --outSAMtype BAM SortedByCoordinate \
+            --outFileNamePrefix results/star_mapping/{wildcards.trimmed}_
+        """
+
