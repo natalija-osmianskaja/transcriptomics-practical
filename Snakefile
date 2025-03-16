@@ -30,5 +30,5 @@ rule bbduk:
     output:
         "results/trimmed/{sample}.fastq.gz"
     shell:
-        "bbmap\bbduk.sh in={input} out={output} ref=barcode_adaptor/adapters.fa ktrim=r k=23 mink=11 hdist=1 tpe tbo qtrim=r trimq=10"
+        "bbmap/bbduk.sh in={input} out={output} ref=resources/barcode_adaptor/adapters.fa ktrim=r k=23 mink=11 hdist=1 tpe tbo qtrim=r trimq=10"
      
