@@ -22,7 +22,10 @@ rule all:
         # star_genome_index
         "results/genome_indices/Genome",
         # star_mapping
-        expand("results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam", trimmed=TRIMMED_DATA)
+        expand("results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam", trimmed=TRIMMED_DATA),
+        # index_bam
+        expand("results/samtools_indexed/{trimmed}.bam.bai", trimmed=TRIMMED_DATA)
+        #"results/samtools_indexed/{trimmed}.bam.bai"
  
 rule fastqc:
     input:
@@ -99,3 +102,10 @@ rule star_mapping:
             --outFileNamePrefix results/star_mapping/{wildcards.trimmed}_
         """
 
+rule index_bam:
+    input:
+        "results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam"
+    output:
+        "results/samtools_indexed/{trimmed}.bam.bai"
+    shell:
+        "samtools index {input} -o {output}"
