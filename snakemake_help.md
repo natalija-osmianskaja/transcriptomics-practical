@@ -53,3 +53,8 @@ cd star
 chmod +x ./STAR
 ./STAR # to check if it works
 ~~~
+
+## Install featureCounts
+~~~bash~~~
+sudo apt install subread
+~~~

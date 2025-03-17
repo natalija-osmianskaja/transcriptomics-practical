@@ -24,8 +24,11 @@ rule all:
         # star_mapping
         expand("results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam", trimmed=TRIMMED_DATA),
         # index_bam
-        expand("results/samtools_indexed/{trimmed}.bam.bai", trimmed=TRIMMED_DATA)
-        #"results/samtools_indexed/{trimmed}.bam.bai"
+        expand("results/samtools_indexed/{trimmed}.bam.bai", trimmed=TRIMMED_DATA),
+        # featureCounts_s1
+        expand("results/feature_count_s1/{trimmed}.txt", trimmed=TRIMMED_DATA),
+        # featureCounts_s2
+        expand("results/feature_count_s2/{trimmed}.txt", trimmed=TRIMMED_DATA)       
  
 rule fastqc:
     input:
@@ -109,3 +112,21 @@ rule index_bam:
         "results/samtools_indexed/{trimmed}.bam.bai"
     shell:
         "samtools index {input} -o {output}"
+
+rule featureCounts_s1:
+    input:
+        bam="results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam",
+        gtf="resources/ref/chr19_20Mb.gtf"
+    output:
+        "results/feature_count_s1/{trimmed}.txt"    
+    shell:
+        "featureCounts -p -t exon -g gene_id -O -T 8 -a {input.gtf} -o {output} {input.bam} -s 1" 
+
+rule featureCounts_s2:
+    input:
+        bam="results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam",
+        gtf="resources/ref/chr19_20Mb.gtf"
+    output:
+        "results/feature_count_s2/{trimmed}.txt"    
+    shell:
+        "featureCounts -p -t exon -g gene_id -O -T 8 -a {input.gtf} -o {output} {input.bam} -s 2" 
