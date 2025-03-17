@@ -130,3 +130,20 @@ rule featureCounts_s2:
         "results/feature_count_s2/{trimmed}.txt"    
     shell:
         "featureCounts -p -t exon -g gene_id -O -T 8 -a {input.gtf} -o {output} {input.bam} -s 2" 
+
+# Q: Which library in this set would be the special one and would be different from others?
+# A: S1 provides bigger number of reads successfully assigned to features (e.g., exons, genes) than S2
+#    summary files "Assigned" value
+
+# Q: Collect data on alignment rate per sample (look for fraction of uniquely mapped reads)      
+#    Are there any differences that could be related to tissue types and/or sample preparation preparation methods?
+# A
+
+# Step 6: Using custom scripts 
+rule plot_quals:
+    input:
+        "calls/all.vcf"
+    output:
+        "plots/quals.svg"
+    script:
+        "scripts/calc_reads.py"
