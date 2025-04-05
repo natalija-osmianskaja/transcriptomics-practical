@@ -28,7 +28,9 @@ rule all:
         # featureCounts_s1
         expand("results/feature_count_s1/{trimmed}.txt", trimmed=TRIMMED_DATA),
         # featureCounts_s2
-        expand("results/feature_count_s2/{trimmed}.txt", trimmed=TRIMMED_DATA)       
+        expand("results/feature_count_s2/{trimmed}.txt", trimmed=TRIMMED_DATA),
+        # analyze_features
+        "results/feature_count/read_analysis.txt"      
  
 rule fastqc:
     input:
@@ -135,15 +137,27 @@ rule featureCounts_s2:
 # A: S1 provides bigger number of reads successfully assigned to features (e.g., exons, genes) than S2
 #    summary files "Assigned" value
 
+
+# KAPA vs Colibri
+
 # Q: Collect data on alignment rate per sample (look for fraction of uniquely mapped reads)      
 #    Are there any differences that could be related to tissue types and/or sample preparation preparation methods?
 # A
 
-# Step 6: Using custom scripts 
-rule plot_quals:
+# Analyze feature counts
+rule analyze_features:
     input:
-        "calls/all.vcf"
+        "results/feature_count_s1/Collibri_standard_protocol-HBR-Collibri-100_ng-2_S1_L001.txt.summary"
     output:
-        "plots/quals.svg"
+        "results/feature_count/read_analysis.txt"
     script:
         "scripts/calc_reads.py"
+
+# rule featureCounts_temp:
+#     input:
+#         bam="results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam",
+#         gtf="resources/ref/chr19_20Mb.gtf"
+#     output:
+#         "results/feature_count_s1/{trimmed}.txt"    
+#     shell:
+#         "featureCounts -p -t exon -g gene_id -O -T 8 -a {input.gtf} -o {output} {input.bam} -s 1" 
