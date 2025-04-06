@@ -3,35 +3,6 @@ import os
 import sys
 import shutil
 
-def add_matrix_row(matrix, s1, s2, s3, s4):
-    m_row = []
-    m_row.append(s1) 
-    m_row.append(s2) 
-    m_row.append(s3) 
-    m_row.append(s4) 
-    matrix.append(m_row)
-
-def process_file(input_filepath, m):
-    if os.path.exists(input_filepath):
-        try:
-            input_file = pd.read_csv(input_filepath, sep="\t", index_col=0, header=0)
-
-            assigned = input_file.loc["Assigned"].values[0]
-            unassigned_mm = input_file.loc["Unassigned_MultiMapping"].values[0]
-            unassigned_nf = input_file.loc["Unassigned_NoFeatures"].values[0]
-        
-            add_matrix_row(m, input_file, assigned, unassigned_mm, unassigned_nf)
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-
-def write_matrix(matrix, output_filepath):
-    # Write the transposed data to a new file
-    with open(output_filepath, 'w') as output_file:
-        for i in range(len(matrix)):
-            output_file.write(f"\t{matrix[i],[0]}\t{matrix[i],[1]}\t{matrix[i],[2]}\t{matrix[i],[3]}\n")
-
-
 def choose_best_assigned (s1, s2):
     # Check the pair of files, compare Assigned value and select the best
 

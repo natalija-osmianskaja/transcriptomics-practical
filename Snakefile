@@ -35,8 +35,12 @@ rule all:
          expand("results/feature_count_choice/{trimmed}.txt", trimmed=TRIMMED_DATA),
         # collibri_matrix
         "results/gene_matrix/Collibri.txt",
-         # kapa_matrix
-        "results/gene_matrix/KAPA.txt"       
+        # kapa_matrix
+        "results/gene_matrix/kapa.txt",       
+        # analyze_collibri_matrix
+        "results/gene_matrix/Collibri_summary.txt",
+        # analyze_kapa_matrix
+        "results/gene_matrix/kapa_summary.txt"   
 
 rule fastqc:
     input:
@@ -139,8 +143,7 @@ rule featureCounts_s2:
     shell:
         "featureCounts -p -t exon -g gene_id -O -T 8 -a {input.gtf} -o {output} {input.bam} -s 2" 
 
-# Q: Which library in this set would be the special one and would be different from others?
-# Analyze summary counts
+
 #According to summary select the best
 rule analyze_summary:
     input:
@@ -150,15 +153,22 @@ rule analyze_summary:
         "results/feature_count_choice/{trimmed}.txt"
     shell:
         "python3 scripts/calc_reads.py {input} {output}" 
-
+# Q: Which library in this set would be the special one and would be different from others?
+# Analyze summary counts
+# A: Accordimg to generated report file results/feature_count_choice/report.txt
+# for Collibri - s1 is provides better assignments than s2
+# for KAPA - s2 is provides better assignments than s1:
+# s2	results/feature_count_s2/KAPA_mRNA_HyperPrep_-UHRR-KAPA-100_ng_total_RNA-3_S8_L001.txt
+# s1	results/feature_count_s1/Collibri_standard_protocol-UHRR-Collibri-100_ng-2_S3_L001.txt
+# s1	results/feature_count_s1/Collibri_standard_protocol-UHRR-Collibri-100_ng-3_S4_L001.txt
+# s2	results/feature_count_s2/KAPA_mRNA_HyperPrep_-HBR-KAPA-100_ng_total_RNA-3_S6_L001.txt
+# s1	results/feature_count_s1/Collibri_standard_protocol-HBR-Collibri-100_ng-2_S1_L001.txt
+# s2	results/feature_count_s2/KAPA_mRNA_HyperPrep_-UHRR-KAPA-100_ng_total_RNA-2_S7_L001.txt
+# s1	results/feature_count_s1/Collibri_standard_protocol-HBR-Collibri-100_ng-3_S2_L001.txt
 
 # 
-# 2 Count matrix - KAPA vs Colibri
-# X - sample, X - Gene, 
-
-# Q: Collect data on alignment rate per sample (look for fraction of uniquely mapped reads)      
-#    Are there any differences that could be related to tissue types and/or sample preparation preparation methods?
-# A
+# Two gene count matrix - KAPA vs Colibri
+# X - sample, Y - Gene, 
 
 rule collibri_matrix:
     input:
@@ -172,6 +182,27 @@ rule kapa_matrix:
     input:
         expand("results/feature_count_choice/KAPA_{kapa}.txt", kapa=KAPA_DATA)
     output:
-        "results/gene_matrix/KAPA.txt"   
+        "results/gene_matrix/kapa.txt"   
     shell:
         "python3 scripts/calc_gene_matrix.py {input} {output}" 
+
+rule analyze_collibri_matrix:
+    input:
+        "results/gene_matrix/Collibri.txt"
+    output:
+        "results/gene_matrix/Collibri_summary.txt"    
+    shell:
+        "python3 scripts/analyze_matrix.py {input} {output}"  
+
+rule analyze_kapa_matrix:
+    input:
+        "results/gene_matrix/kapa.txt"
+    output:
+        "results/gene_matrix/kapa_summary.txt"    
+    shell:
+        "python3 scripts/analyze_matrix.py {input} {output}"  
+
+# Q: Collect data on alignment rate per sample (look for fraction of uniquely mapped reads)      
+#    Are there any differences that could be related to tissue types and/or sample preparation preparation methods?
+# A
+       
