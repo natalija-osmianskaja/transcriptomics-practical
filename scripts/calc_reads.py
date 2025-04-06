@@ -1,50 +1,73 @@
 import pandas as pd
 import os
+import sys
+import shutil
 
-def process_file(input_filepath, output_filepath):
+def add_matrix_row(matrix, s1, s2, s3, s4):
+    m_row = []
+    m_row.append(s1) 
+    m_row.append(s2) 
+    m_row.append(s3) 
+    m_row.append(s4) 
+    matrix.append(m_row)
+
+def process_file(input_filepath, m):
     if os.path.exists(input_filepath):
         try:
-            # read summary file, skipping first line
-            with open(input_filepath, 'r') as input_file:
-                next(input_file)  # Skip the first line
-                #lines = [line.strip().split('\t') for line in input_file] 
-                lines = input_file.readlines()
-                keys = []
-                values = []
+            input_file = pd.read_csv(input_filepath, sep="\t", index_col=0, header=0)
 
-                for line in lines:
-                    parts = line.split()
-                    keys.append(parts[0])
-                    if len(parts) > 1:
-                        values.append(parts[1])
-                    else:
-                        values.append('') 
-
-                # Transpose the parsed data
-                transposed = list(zip(keys, values))
-
-                # Write the transposed data to a new file
-                with open(output_filepath, 'w') as output_file:
-                    for key, value in transposed:
-                        output_file.write(f"{key}\t{value}\n")
-
-            # # Load the data from a tab-separated text file, assuming the header is in the first row
-            # df = pd.read_csv(file_path, sep='\t')
-            # with open(output_file, 'w') as matrix:
-            #     matrix.write(file_path)
-            #     ## Iterate over each row and print
-            #     for index, row in df.iterrows():
-            #         # print(row.to_dict()) 
-            #         matrix.write(row.to_dict())
+            assigned = input_file.loc["Assigned"].values[0]
+            unassigned_mm = input_file.loc["Unassigned_MultiMapping"].values[0]
+            unassigned_nf = input_file.loc["Unassigned_NoFeatures"].values[0]
+        
+            add_matrix_row(m, input_file, assigned, unassigned_mm, unassigned_nf)
 
         except Exception as e:
             print(f"An error occurred: {e}")
 
-# Define the path to your text file
-s1_dir = 'results/feature_count_s1/'
-input_filename = 'Collibri_standard_protocol-HBR-Collibri-100_ng-2_S1_L001.txt.summary'
-output_filepath = "results/feature_count/read_analysis.txt"
+def write_matrix(matrix, output_filepath):
+    # Write the transposed data to a new file
+    with open(output_filepath, 'w') as output_file:
+        for i in range(len(matrix)):
+            output_file.write(f"\t{matrix[i],[0]}\t{matrix[i],[1]}\t{matrix[i],[2]}\t{matrix[i],[3]}\n")
 
-# Call the function
-process_file(s1_dir + input_filename, output_filepath)
-#print("check-ok")
+
+def choose_best_assigned (s1, s2):
+    # Check the pair of files, compare Assigned value and select the best
+
+    s1_file = pd.read_csv(s1, sep="\t", index_col=0, header=0)
+    assigned_s1 = s1_file.loc["Assigned"].values[0]   
+    s2_file = pd.read_csv(s2, sep="\t", index_col=0, header=0)
+    assigned_s2 = s2_file.loc["Assigned"].values[0]    
+    if assigned_s1 > assigned_s2:
+        best_assigned = "s1"
+    else:
+        best_assigned = "s2"     
+    return best_assigned
+
+# Start analysis
+print("new run")
+s1_filepath = sys.argv[1]
+s2_filepath = sys.argv[2]
+s1_summary_filepath = s1_filepath + ".summary"
+s2_summary_filepath = s2_filepath + ".summary"
+
+print("Input file 1:", s1_filepath)
+
+output_filepath = sys.argv[3]
+report_filepath = os.path.dirname(output_filepath) + "/" + "report_txt"
+print("Report:",  report_filepath)
+
+# analyze summary file
+best_assigned = choose_best_assigned(s1_summary_filepath, s2_summary_filepath)
+# put choice to report
+if best_assigned == "s1":
+    best_assigned_filepath = s1_filepath 
+else:
+    best_assigned_filepath = s2_filepath 
+with open(report_filepath, 'a') as output_file:
+    output_file.write(best_assigned + "\t" + best_assigned_filepath + "\n")
+
+# copy file to further analysis
+shutil.copy (best_assigned_filepath, output_filepath)
+

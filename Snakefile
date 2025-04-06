@@ -2,6 +2,8 @@
 # {sample} is a wildcard which represents a variable part of the filename
 RNA_SAMPLE_DATA = glob_wildcards("resources/RNA-seq-sample-data/{sample}.fastq.gz").sample
 TRIMMED_DATA = glob_wildcards("results/trimmed/{trimmed}_R1_001.fastq.gz").trimmed
+COLLIBRI_DATA = glob_wildcards("resources/RNA-seq-sample-data/Collibri_{collibri}_R1_001.fastq.gz").collibri
+KAPA_DATA = glob_wildcards("resources/RNA-seq-sample-data/KAPA_{KAPA}_R1_001.fastq.gz").KAPA
 
 #print(TRIMMED_DATA)
 #print(expand("results/trimmed/{trimmed}_R1_001.fastq.gz", trimmed=TRIMMED_DATA))
@@ -30,8 +32,12 @@ rule all:
         # featureCounts_s2
         expand("results/feature_count_s2/{trimmed}.txt", trimmed=TRIMMED_DATA),
         # analyze_features
-        "results/feature_count/read_analysis.txt"      
- 
+         expand("results/feature_count_choice/{trimmed}.txt", trimmed=TRIMMED_DATA),
+        # collibri_matrix
+        "results/gene_matrix/Collibri.txt",
+         # kapa_matrix
+        "results/gene_matrix/KAPA.txt"       
+
 rule fastqc:
     input:
         "resources/RNA-seq-sample-data/{sample}.fastq.gz"
@@ -134,30 +140,38 @@ rule featureCounts_s2:
         "featureCounts -p -t exon -g gene_id -O -T 8 -a {input.gtf} -o {output} {input.bam} -s 2" 
 
 # Q: Which library in this set would be the special one and would be different from others?
-# A: S1 provides bigger number of reads successfully assigned to features (e.g., exons, genes) than S2
-#    summary files "Assigned" value
+# Analyze summary counts
+#According to summary select the best
+rule analyze_summary:
+    input:
+        "results/feature_count_s1/{trimmed}.txt",
+        "results/feature_count_s2/{trimmed}.txt"
+    output:
+        "results/feature_count_choice/{trimmed}.txt"
+    shell:
+        "python3 scripts/calc_reads.py {input} {output}" 
 
 
-# KAPA vs Colibri
+# 
+# 2 Count matrix - KAPA vs Colibri
+# X - sample, X - Gene, 
 
 # Q: Collect data on alignment rate per sample (look for fraction of uniquely mapped reads)      
 #    Are there any differences that could be related to tissue types and/or sample preparation preparation methods?
 # A
 
-# Analyze feature counts
-rule analyze_features:
+rule collibri_matrix:
     input:
-        "results/feature_count_s1/Collibri_standard_protocol-HBR-Collibri-100_ng-2_S1_L001.txt.summary"
+        expand("results/feature_count_choice/Collibri_{collibri}.txt", collibri=COLLIBRI_DATA)
     output:
-        "results/feature_count/read_analysis.txt"
-    script:
-        "scripts/calc_reads.py"
+        "results/gene_matrix/Collibri.txt"    
+    shell:
+        "python3 scripts/calc_gene_matrix.py {input} {output}" 
 
-# rule featureCounts_temp:
-#     input:
-#         bam="results/star_mapping/{trimmed}_Aligned.sortedByCoord.out.bam",
-#         gtf="resources/ref/chr19_20Mb.gtf"
-#     output:
-#         "results/feature_count_s1/{trimmed}.txt"    
-#     shell:
-#         "featureCounts -p -t exon -g gene_id -O -T 8 -a {input.gtf} -o {output} {input.bam} -s 1" 
+rule kapa_matrix:
+    input:
+        expand("results/feature_count_choice/KAPA_{kapa}.txt", kapa=KAPA_DATA)
+    output:
+        "results/gene_matrix/KAPA.txt"   
+    shell:
+        "python3 scripts/calc_gene_matrix.py {input} {output}" 
